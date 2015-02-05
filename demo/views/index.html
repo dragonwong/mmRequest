@@ -14,6 +14,7 @@
 		hljs.initHighlightingOnLoad();
 	}
 </script>
+<script src="/js/jquery-1.11.2.js"></script>
 <script src="/avalon.js"></script>
 <script src="/js/index.js"></script>
 
@@ -38,7 +39,7 @@ avalon.get('/api', {
 	avalon.log(res);
 	vmodel.state.setSucc(res);
 });</code></pre>
-		
+
 		<p><button ms-click="ajaxGet">avalon.ajax</button></p>
 <pre><code class="javascript">var sendType = 'type 为 \'get\' 的 avalon.ajax';
 vmodel.state.setSend(sendType);
@@ -240,7 +241,7 @@ avalon.ajax({
 		sendType: sendType
 	})
 });</code></pre>
-		
+
 		<p><button ms-click="corsGetJSON">avalon.getJSON</button>（<code>url</code> 最后包含 <code>'?callback=?'</code>）</p>
 
 <pre><code class="javascript">var sendType = '通过 url 后缀识别跨域的 avalon.getJSON';
@@ -252,7 +253,7 @@ avalon.getJSON(corssDomain + '/jsonp?callback=?', {
 	avalon.log(res);
 	vmodel.state.setSucc(res);
 });</code></pre>
-		
+
 		<p><button ms-click="corsAjaxGetJSON">avalon.ajax</button>（<code>url</code> 最后包含 <code>'?callback=?'</code>）</p>
 
 <pre><code class="javascript">var sendType = '通过 url 后缀识别跨域的 avalon.ajax';
@@ -269,7 +270,7 @@ avalon.ajax({
 	avalon.log(res);
 	vmodel.state.setSucc(res);
 });</code></pre>
-	
+
 	</fieldset>
 
 	<!-- param -->
@@ -301,7 +302,7 @@ avalon.log(avalon.unparam(str));
 	<fieldset>
 	<legend><h2>serialize</h2></legend>
 	<p>通过表单元素生成字符串。</p>
-	
+
 
 	<div id="test-form">
 		<p>
@@ -333,7 +334,7 @@ vmodel.serializeStr = str;</code></pre>
 	</fieldset>
 
 
-<!-- 
+<!--
 <p>dataType 为 jsonp，type 为 post，无法传输 data</p>
 <p>dataType 为 json，type 为 post，报错，没有根据 url 含有 callback 自动改为 jsonp</p>
  -->
