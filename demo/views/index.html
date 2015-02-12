@@ -32,7 +32,7 @@
 <pre><code class="javascript">var sendType = 'avalon.get';
 vmodel.state.setSend(sendType);
 
-avalon.get('/api', {
+avalon.get('/demo/api', {
 	sendType: sendType,
 	arr: ['html', 'css', 'js']
 }).done(function(res) {
@@ -45,7 +45,7 @@ avalon.get('/api', {
 vmodel.state.setSend(sendType);
 
 avalon.ajax({
-	url: '/api',
+	url: '/demo/api',
 	type: 'get',
 	cache: false,
 	data: {
@@ -67,7 +67,7 @@ avalon.ajax({
 <pre><code class="javascript">var sendType = 'avalon.post';
 vmodel.state.setSend(sendType);
 
-avalon.post('/api?age=12', {
+avalon.post('/demo/api?age=12', {
 	sendType: sendType
 }).done(function(res) {
 	avalon.log(res);
@@ -79,7 +79,7 @@ avalon.post('/api?age=12', {
 vmodel.state.setSend(sendType);
 
 avalon.ajax({
-	url: '/api',
+	url: '/demo/api',
 	type: 'post',
 	data: {
 		sendType: sendType
@@ -103,7 +103,7 @@ avalon.ajax({
 formData.append('sendType', sendType);
 vmodel.state.setSend(sendType);
 
-avalon.upload('/api?age=12', formData, {
+avalon.upload('/demo/api?age=12', formData, {
 	name: 'avalon'
 }).done(function(res) {
 	avalon.log(res);
@@ -118,12 +118,12 @@ formData.append('sendType', sendType);
 vmodel.state.setSend(sendType);
 
 avalon.ajax({
-	url: '/api',
+	url: '/demo/api',
 	form: formData,
 	data: {
 		name: 'avalon'
 	},
-	type: 'post' //get也可以
+	type: 'post'
 }).done(function(res) {
 	avalon.log(res);
 	vmodel.state.setSucc(res);
@@ -139,7 +139,7 @@ avalon.ajax({
 <pre><code class="javascript">var sendType = 'avalon.getJSON';
 vmodel.state.setSend(sendType);
 
-avalon.getJSON('/api', {
+avalon.getJSON('/demo/api', {
 	sendType: sendType
 }).done(function(res) {
 	avalon.log(res);
@@ -151,7 +151,7 @@ avalon.getJSON('/api', {
 vmodel.state.setSend(sendType);
 
 avalon.ajax({
-	url: '/api',
+	url: '/demo/api',
 	data: {
 		sendType: sendType
 	},
@@ -173,10 +173,10 @@ avalon.ajax({
 <pre><code class="javascript">var sendType = 'avalon.getScript';
 vmodel.state.setSend(sendType);
 
-avalon.getScript('/js/test.js', {
-	sendType: sendType
+avalon.getScript('/js/test.js', function() {
+	avalon.log(arguments)
 }).done(function(res) {
-	avalon.log(res)
+	avalon.log(res);
 	vmodel.state.setSucc({
 		sendType: sendType
 	});
@@ -200,7 +200,7 @@ avalon.ajax({
 	});
 });</code></pre>
 
-		<p><button ms-click="ajaxGetScriptNoDataType">avalon.ajax</button>（未设置 <code>dataType</code>，使用 xhr 加载脚本，可以获取脚本内容，无法跨域）</p>
+		<p><button ms-click="ajaxGetScriptNoDataType">avalon.ajax</button>（未设置 <code>dataType</code>，使用 xhr 加载脚本，可以获取脚本内容，但无法跨域）</p>
 <pre><code class="javascript">var sendType = '未设置 dataType 的 avalon.ajax';
 vmodel.state.setSend(sendType);
 
@@ -237,9 +237,7 @@ avalon.ajax({
 	cache: false
 }).done(function(res) {
 	avalon.log(res)
-	vmodel.state.setSucc({
-		sendType: sendType
-	})
+	vmodel.state.setSucc(res);
 });</code></pre>
 
 		<p><button ms-click="corsGetJSON">avalon.getJSON</button>（<code>url</code> 最后包含 <code>'?callback=?'</code>）</p>
