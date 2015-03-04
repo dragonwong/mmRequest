@@ -52,10 +52,12 @@ var transports = avalon.ajaxTransports = {
 
                     var text = transport.responseText
                     var statusText = transport.statusText
-                    var status = transport.status
-                    var status = xhrSuccessStatus[status] || status
+                    var status = xhrSuccessStatus[status] || transport.status
 
-                    this.response = transport.response
+                    //设置response
+                    if (this.useResponseType) {
+                        this.response = transport.response
+                    }
                     this.responseText = typeof text === "string" ? text : void 0
                     this.responseXML = (transport.responseXML || {}).documentElement
                     this.responseHeadersString = transport.getAllResponseHeaders()
@@ -114,8 +116,13 @@ var transports = avalon.ajaxTransports = {
                 parent.removeChild(node)
             }
             if (!forceAbort) {
-                var jsonpCallback = this.jsonpCallback.startsWith('avalon.') ? avalon[this.jsonpCallback.replace(/avalon\./, '')] : window[this.jsonpCallback]
-                var args = typeof jsonpCallback === "function" ? [500, "error"] : [200, "success"]
+                var args;
+                if (this.jsonpCallback) {
+                    var jsonpCallback = this.jsonpCallback.startsWith('avalon.') ? avalon[this.jsonpCallback.replace(/avalon\./, '')] : window[this.jsonpCallback]
+                    args = typeof jsonpCallback === "function" ? [500, "error"] : [200, "success"]
+                } else {
+                    args = [200, "success"]
+                }
                 this.dispatch.apply(this, args)
             }
         }
