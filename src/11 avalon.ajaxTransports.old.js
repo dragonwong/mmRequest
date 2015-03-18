@@ -4,7 +4,6 @@ var transports = avalon.ajaxTransports = {
         request: function() {
             var self = this;
             var opts = this.options;
-            avalon.log("XhrTransport.request.....")
             var transport = this.transport = new avalon.xhr;
             transport.open(opts.type, opts.url, opts.async, opts.username, opts.password)
             if (this.mimeType && transport.overrideMimeType) {
@@ -14,11 +13,33 @@ var transports = avalon.ajaxTransports = {
             if (opts.crossDomain && "withCredentials" in transport) {
                 transport.withCredentials = true
             }
-            this.requestHeaders["X-Requested-With"] = "XMLHttpRequest"
+
+            /*
+             * header 中设置 X-Requested-With 用来给后端做标示：
+             * 这是一个 ajax 请求。
+             *
+             * 在 Chrome、Firefox 3.5+ 和 Safari 4+ 下，
+             * 在进行跨域请求时设置自定义 header，会触发 preflighted requests，
+             * 会预先发送 method 为 OPTIONS 的请求。
+             *
+             * 于是，如果跨域，禁用此功能。
+             */
+            if (!opts.crossDomain) {
+                this.requestHeaders["X-Requested-With"] = "XMLHttpRequest"
+            }
+
             for (var i in this.requestHeaders) {
                 transport.setRequestHeader(i, this.requestHeaders[i] + "")
             }
-            var dataType = this.options.dataType;
+            
+            /*
+             * progress
+             */
+            if(opts.progressCallback) {
+                transport.onprogress = opts.progressCallback
+            }
+
+            var dataType = opts.dataType
             if ("responseType" in transport && /^(blob|arraybuffer|text)$/.test(dataType)) {
                 transport.responseType = dataType
                 this.useResponseType = true
@@ -135,7 +156,6 @@ var transports = avalon.ajaxTransports = {
         request: function() {
             var opts = this.options;
             var node = this.transport = DOC.createElement("script")
-            avalon.log("ScriptTransport.sending.....")
             if (opts.charset) {
                 node.charset = opts.charset
             }
@@ -260,7 +280,6 @@ if (!window.FormData) {
                 form.action = opts.url;
                 form.method = "POST";
                 form.enctype = "multipart/form-data";
-                avalon.log("iframe transport...");
                 this.uploadcallback = avalon.bind(iframe, "load", function(event) {
                     self.respond(event);
                 });
@@ -296,7 +315,6 @@ if (!window.FormData) {
                 delete this.uploadcallback;
                 setTimeout(function() {  // Fix busy state in FF3
                     node.parentNode.removeChild(node);
-                    avalon.log("iframe.parentNode.removeChild(iframe)");
                 });
             }
         };

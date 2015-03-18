@@ -88,10 +88,21 @@ Have fun.:grin:
 Contributing
 ------------
 
-Please develop in `src/` and edit corresponding modules. You can run:
+Please develop corresponding modules in `src/`.
+
+mmRequest is built with [gulp](http://gulpjs.com/), please install dependent modules:
 
 ```
-cd src/ && node \$\$combo.js
+npm install
 ```
 
-to combine them into one file in `public/`.
+Then, start `gulp`，watch the change in `src/` and merge files to `public/` automatically：
+
+```
+gulp
+```
+
+Changelog
+------------
+
+2015.3.13 Import mmPromise.js again
