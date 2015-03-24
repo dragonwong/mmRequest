@@ -62,7 +62,7 @@ define("mmRequest", ["avalon", "mmPromise"], function(avalon) {
     var head = DOC.head //HEAD元素
     var isLocal = rlocalProtocol.test(location.protocol)
     avalon.xhr = function() {
-        return new XMLHttpRequest
+        return newXMLHttpRequest
     }
     var supportCors = "withCredentials" in avalon.xhr()
     function parseXML(data, xml, tmp) {
@@ -74,7 +74,7 @@ define("mmRequest", ["avalon", "mmPromise"], function(avalon) {
         try {
             xml = (new DOMParser()).parseFromString(data, "text/xml")
         } catch (e) {
-                xml = undefined
+            xml = undefined
         }
 
         if (!xml || xml.getElementsByTagName("parsererror").length) {
@@ -114,7 +114,7 @@ define("mmRequest", ["avalon", "mmPromise"], function(avalon) {
                 urlAnchor.href = absUrl
                 opts.crossDomain = originAnchor.protocol + "//" + originAnchor.host !== urlAnchor.protocol + "//" + urlAnchor.host
             } catch (e) {
-                    opts.crossDomain = true
+                opts.crossDomain = true
             }
         }
         opts.hasContent = !rnoContent.test(opts.type) //是否为post请求
@@ -123,7 +123,7 @@ define("mmRequest", ["avalon", "mmPromise"], function(avalon) {
                 opts.url += (rquery.test(opts.url) ? "&" : "?") + querystring
             }
             if (opts.cache === false) { //添加时间截
-                opts.url += (rquery.test(opts.url) ? "&" : "?") + "_time=" + (new Date - 0)
+                opts.url += (rquery.test(opts.url) ? "&" : "?") + "_time=" + (new Date() - 0)
             }
         }
         return opts
@@ -201,9 +201,9 @@ define("mmRequest", ["avalon", "mmPromise"], function(avalon) {
                         try {
                             this.response = avalon.ajaxConverters[dataType].call(this, responseText, responseXML)
                         } catch (e) {
-                                isSuccess = false
-                                this.error = e
-                                statusText = "parsererror"
+                            isSuccess = false
+                            this.error = e
+                            statusText = "parsererror"
                         }
                     }
                 }
@@ -217,11 +217,10 @@ define("mmRequest", ["avalon", "mmPromise"], function(avalon) {
             this._transport = this.transport
             // 到这要么成功，调用success, 要么失败，调用 error, 最终都会调用 complete
             if (isSuccess) {
-                this._resolve(this.response, statusText, this)
+                this._resolve([this.response, statusText, this])
             } else {
-                this._reject(statusText, this.error || statusText)
+                this._reject([this, statusText, this.error])
             }
-            this._complete(this, statusText)
             delete this.transport
         }
     }
@@ -246,40 +245,54 @@ define("mmRequest", ["avalon", "mmPromise"], function(avalon) {
             _resolve = resolve
             _reject = reject
         })
-        var completeFns = []
+
         promise.options = opts
         promise._reject = _reject
         promise._resolve = _resolve
-        var isSync = opts.async === false
-        if (isSync) {
-            avalon.log("warnning:与jquery1.8一样,async:false这配置已经被废弃")
-            promise.async = false
-        }
-        promise._complete = function(fn) {
-            while (fn = completeFns.shift()) {
-                fn.apply(promise, arguments)
+
+        function fireComplete(me, obj, args, fn) {
+            var fns = obj._completes || []
+            while (fn = fns.shift()) {
+                try {
+                    fn.apply(me, args)
+                } catch (e) {}
             }
         }
+        var chain = {}
+        Array("done", "fail").forEach(function(method, index) {
+            promise[method] = function(callback) { //添加promise.done, promise.fail
+                var array = [null, null]
+                var me = this
+                array[index] = function(value) {
+                    var chain = callback || function() {}
+                    // if (typeof callback === "function") {
+                    chain.apply(me, value) //success, error
+                    //  }
+                    fireComplete(me, chain, value) //complete
+                }
+                return me.then.apply(me, array)
+            }
+        })
+
         promise.always = function(fn) {
+            var completeFns = chain._completes || (chain._completes = [])
+            // var completeFns = this._completes = []
             if (typeof fn === "function") {
                 completeFns.push(fn)
             }
             return this
         }
 
-        function makeFn(fn) {
-            return typeof fn === "function" ? fn : avalon.noop
+        var isSync = opts.async === false
+        if (isSync) {
+            avalon.log("warnning:与jquery1.8一样,async:false这配置已经被废弃")
+            promise.async = false
         }
 
-        promise.then(function(args) {
-            var fn = makeFn(opts.success)
-            return fn.apply(promise, args)
-        }, function(args) {
-            var fn = makeFn(opts.error)
-            return fn.apply(promise, args)
-        })
 
         avalon.mix(promise, XHRProperties, XHRMethods)
+
+        promise.always(opts.complete).done(opts.success).fail(opts.error)
 
         var dataType = opts.dataType //目标返回数据类型
         var transports = avalon.ajaxTransports

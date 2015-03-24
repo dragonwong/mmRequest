@@ -1,5 +1,5 @@
 //ajax主函数
-avalon.ajax = function(opts, promise) {
+avalon.ajax = function (opts, promise) {
     if (!opts || !opts.url) {
         avalon.error("参数必须为Object并且拥有url属性")
     }
@@ -15,44 +15,59 @@ avalon.ajax = function(opts, promise) {
         status: 0
     }
     var _reject, _resolve
-    var promise = new avalon.Promise(function(resolve, reject) {
+    var promise = new avalon.Promise(function (resolve, reject) {
         _resolve = resolve
         _reject = reject
     })
-    var completeFns = []
+
     promise.options = opts
     promise._reject = _reject
     promise._resolve = _resolve
-    var isSync = opts.async === false
-    if (isSync) {
-        avalon.log("warnning:与jquery1.8一样,async:false这配置已经被废弃")
-        promise.async = false
-    }
-    promise._complete = function(fn) {
-        while (fn = completeFns.shift()) {
-            fn.apply(promise, arguments)
+
+    function fireComplete(me, obj, args, fn) {
+        var fns = obj._completes || []
+        while (fn = fns.shift()) {
+            try {
+                fn.apply(me, args)
+            } catch (e) {
+            }
         }
     }
-    promise.always = function(fn) {
+    var  chain = {}
+    Array("done", "fail").forEach(function (method, index) {
+        promise[method] = function (callback) {//添加promise.done, promise.fail
+            var array = [null, null]
+            var me = this
+            array[index] = function (value) {
+                var chain = callback || function(){}
+               // if (typeof callback === "function") {
+                    chain.apply(me, value)//success, error
+              //  }
+                fireComplete(me, chain, value)  //complete
+            }
+            return me.then.apply(me, array)
+        }
+    })
+
+    promise.always = function (fn) {
+        var completeFns = chain._completes ||  (chain._completes = [])
+       // var completeFns = this._completes = []
         if (typeof fn === "function") {
             completeFns.push(fn)
         }
         return this
     }
-    
-    function makeFn(fn){
-        return typeof fn === "function" ? fn : avalon.noop
+
+    var isSync = opts.async === false
+    if (isSync) {
+        avalon.log("warnning:与jquery1.8一样,async:false这配置已经被废弃")
+        promise.async = false
     }
 
-    promise.then(function(args) {
-        var fn = makeFn(opts.success)
-        return fn.apply(promise, args)
-    }, function(args) {
-        var fn = makeFn(opts.error)
-        return fn.apply(promise, args)
-    })
 
     avalon.mix(promise, XHRProperties, XHRMethods)
+
+    promise.always(opts.complete).done(opts.success).fail(opts.error)
 
     var dataType = opts.dataType  //目标返回数据类型
     var transports = avalon.ajaxTransports
@@ -77,7 +92,7 @@ avalon.ajax = function(opts, promise) {
     }
     // 4.处理超时
     if (opts.async && opts.timeout > 0) {
-        promise.timeoutID = setTimeout(function() {
+        promise.timeoutID = setTimeout(function () {
             promise.abort("timeout")
             promise.dispatch(0, "timeout")
         }, opts.timeout)
@@ -85,8 +100,8 @@ avalon.ajax = function(opts, promise) {
     promise.request()
     return promise
 };
-"get,post".replace(avalon.rword, function(method) {
-    avalon[method] = function(url, data, callback, type) {
+"get,post".replace(avalon.rword, function (method) {
+    avalon[method] = function (url, data, callback, type) {
         if (typeof data === "function") {
             type = type || callback
             callback = data
@@ -102,13 +117,13 @@ avalon.ajax = function(opts, promise) {
     };
 })
 
-avalon.getScript = function(url, callback) {
+avalon.getScript = function (url, callback) {
     return avalon.get(url, null, callback, "script")
 }
-avalon.getJSON = function(url, data, callback) {
+avalon.getJSON = function (url, data, callback) {
     return avalon.get(url, data, callback, "json")
 }
-avalon.upload = function(url, form, data, callback, dataType) {
+avalon.upload = function (url, form, data, callback, dataType) {
     if (typeof data === "function") {
         dataType = callback;
         callback = data;
