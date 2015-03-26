@@ -39,12 +39,6 @@ require(['./mmRequest', 'domReady!'], function(avalon) {
 			}).done(function(res) {
 				avalon.log(res);
 				vmodel.state.setSucc(res);
-			}).fail(function() {
-				console.log(arguments)
-			}).fail(function() {
-				console.log(arguments)
-			}).always(function() {
-				console.log(arguments)
 			});
 		},
 		ajaxGet: function() {
@@ -61,12 +55,6 @@ require(['./mmRequest', 'domReady!'], function(avalon) {
 			}).done(function(res) {
 				avalon.log(res);
 				vmodel.state.setSucc(res);
-			}).fail(function() {
-				console.log(arguments)
-			}).fail(function() {
-				console.log(arguments)
-			}).always(function() {
-				console.log(arguments)
 			});
 		},
 
@@ -264,19 +252,23 @@ require(['./mmRequest', 'domReady!'], function(avalon) {
 				cache: false,
 				data: {
 					test: 'send me back'
+				},
+				success: function() {
+					avalon.log('success')
 				}
 			}).done(function() {
 				avalon.log('done-1')
 				avalon.log(arguments);
+			}).always(function() {
+				avalon.log('always-1')
+				avalon.log(arguments)
 			}).done(function() {
 				avalon.log('done-2')
-				console.log(arguments)
 			}).fail(function() {
 				avalon.log('fail')
-				console.log(arguments)
 			}).always(function() {
-				avalon.log('always')
-				console.log(arguments)
+				avalon.log('always-2')
+				avalon.log(arguments)
 			});
 		},
 		promiseFail: function() {
@@ -286,7 +278,13 @@ require(['./mmRequest', 'domReady!'], function(avalon) {
 				cache: false,
 				data: {
 					test: 'send me back'
+				},
+				error: function() {
+					avalon.log('error')
 				}
+			}).always(function() {
+				avalon.log('always-1')
+				console.log(arguments)
 			}).done(function() {
 				avalon.log('done')
 				avalon.log(arguments);
@@ -297,7 +295,7 @@ require(['./mmRequest', 'domReady!'], function(avalon) {
 				avalon.log('fail-2')
 				console.log(arguments)
 			}).always(function() {
-				avalon.log('always')
+				avalon.log('always-2')
 				console.log(arguments)
 			});
 		}
